@@ -29,7 +29,7 @@ python -m pip install -e .            # no runtime dependencies
 streamline measure <root> --package <dir>      # import-structure metrics as JSON
 streamline check   profile.json --root <root>  # exit 0 pass, 1 findings, 2 unusable input
 streamline plan    profile.json --root <root>  # propose-only repair order
-python -m pytest tests                          # 35 tests
+python -m pytest tests                          # checker and regression tests
 ```
 
 A profile declares components (`paths`, `layer`, `tier`, `budgets`), optional `streams` and
@@ -56,3 +56,7 @@ expiring `exceptions`. See [examples/planfile.streamline.json](examples/planfile
 - Reads files only; never edits a repository; grants no authority.
 - v1 measures Python. The profile and the rules are language-neutral.
 - Cross-repository composition stays in `modularity`.
+
+Literal `importlib.import_module(...)` calls are included in the dependency graph, including
+standard aliases and explicit literal relative packages. See the [measurement analysis](docs/analysis/literal-dynamic-import-dependencies.md)
+for supported syntax, regressions and limits.

@@ -1,0 +1,24 @@
+{
+  "ticket": "ticket-001",
+  "issue": "https://github.com/wellmanifest/streamline/issues/1",
+  "ownerActor": "agent:codex",
+  "ownerSession": "codex-c768bf9e-d77a-47d0-ba64-640005739b84",
+  "workstream": "application",
+  "allowedPaths": [
+    "src/streamline.py",
+    "tests/test_dynamic_imports.py",
+    "docs/STANDARD.md",
+    "docs/analysis/literal-dynamic-import-dependencies.md",
+    "docs/README.md",
+    "README.md",
+    ".gitignore",
+    "project/ticket-001/intent.json",
+    "project/ticket-001/README.md",
+    "src/streamline_measure.py",
+    "pyproject.toml",
+    "tests/test_streamline.py"
+  ],
+  "base": "e69790a201cb174b6c6d1cf568bdd95f19c05566",
+  "purpose": "Detect literal importlib dependencies without executing scanned code",
+  "publicationAuthority": false
+}

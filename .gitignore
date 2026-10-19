@@ -2,3 +2,8 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 .venv/
+/build/
+/.worktrees/
+/.subactor/leases/
+/.subactor/change-leases/
+/.subactor/receipts/

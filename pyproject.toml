@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wellmanifest-streamline"
+version = "0.1.0.dev0"
+description = "Intra-repository structure standard: horizontal-complexity budgets, layer and tier direction, bounded streams, decision-ordered repair"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "Apache-2.0"}
+authors = [{name = "Wellmanifest"}]
+dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest>=8.0", "jsonschema>=4.23"]
+
+[project.scripts]
+streamline = "streamline:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+py-modules = ["streamline"]

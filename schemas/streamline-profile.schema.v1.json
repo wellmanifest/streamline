@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wellmanifest.com/schemas/streamline/profile/v1",
+  "title": "wellmanifest.streamline profile v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "package", "components"],
+  "properties": {
+    "schema": {"const": "wellmanifest.streamline/profile/v1"},
+    "package": {"type": "string", "minLength": 1, "not": {"anyOf": [{"pattern": "^/"}, {"pattern": "(^|/)\\.\\.(/|$)"}]}},
+    "note": {"type": "string"},
+    "budgets": {"$ref": "#/$defs/budgets"},
+    "components": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "paths", "layer", "tier"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "paths": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "exclude": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "layer": {"enum": ["foundation", "domain", "application", "interface", "deployment"]},
+          "tier": {"enum": ["floor", "core", "edge"]},
+          "stage": {"enum": ["source", "transform", "decision", "sink"]},
+          "budgets": {"$ref": "#/$defs/budgets"},
+          "note": {"type": "string"}
+        }
+      }
+    },
+    "streams": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "producer", "consumers", "bound", "backpressure"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "producer": {"type": "string", "minLength": 1},
+          "consumers": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "bound": {"type": "integer", "minimum": 1},
+          "backpressure": {"enum": ["block", "drop-oldest", "spill"]},
+          "note": {"type": "string"}
+        }
+      }
+    },
+    "exceptions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["module", "rule", "reason", "expires"],
+        "properties": {
+          "module": {"type": "string", "minLength": 1},
+          "rule": {"type": "string", "pattern": "^SL-[A-Z-]+$"},
+          "limit": {"type": "integer", "minimum": 0},
+          "reason": {"type": "string", "minLength": 1},
+          "expires": {"type": "string", "format": "date"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "budgets": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxModuleLines": {"type": "integer", "minimum": 0},
+        "maxFanOut": {"type": "integer", "minimum": 0},
+        "maxImports": {"type": "integer", "minimum": 0},
+        "maxPublicSymbols": {"type": "integer", "minimum": 0},
+        "maxMethodsPerClass": {"type": "integer", "minimum": 0},
+        "maxFunctionLines": {"type": "integer", "minimum": 0}
+      }
+    }
+  }
+}

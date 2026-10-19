@@ -1,0 +1,95 @@
+{
+  "schema": "wellmanifest.streamline/profile/v1",
+  "package": "planfile",
+  "note": "Adopter example (planfile). Intended architecture, not a description of the current tree.",
+  "budgets": {
+    "maxModuleLines": 800,
+    "maxFanOut": 12,
+    "maxImports": 30,
+    "maxPublicSymbols": 40,
+    "maxMethodsPerClass": 40,
+    "maxFunctionLines": 120
+  },
+  "components": [
+    {
+      "id": "foundation",
+      "layer": "foundation",
+      "tier": "floor",
+      "stage": "source",
+      "paths": [
+        "planfile/utils/*.py",
+        "planfile/project_paths.py",
+        "planfile/runtime_context.py",
+        "planfile/contracts.py",
+        "planfile/models.py",
+        "planfile/core/fastio.py",
+        "planfile/core/jsonl_tail.py",
+        "planfile/core/models.py",
+        "planfile/core/models/*.py",
+        "planfile/core/schema.py"
+      ]
+    },
+    {
+      "id": "storage",
+      "layer": "domain",
+      "tier": "floor",
+      "stage": "transform",
+      "paths": [
+        "planfile/core/*.py",
+        "planfile/loaders/*.py",
+        "planfile/ticket_validation.py",
+        "planfile/strategy_input.py"
+      ],
+      "exclude": [
+        "planfile/core/fastio.py",
+        "planfile/core/jsonl_tail.py",
+        "planfile/core/models.py",
+        "planfile/core/models/*.py",
+        "planfile/core/schema.py"
+      ]
+    },
+    {
+      "id": "services",
+      "layer": "application",
+      "tier": "core",
+      "stage": "transform",
+      "paths": [
+        "planfile/sync/*.py",
+        "planfile/analysis/*.py",
+        "planfile/importers/*.py",
+        "planfile/integrations/*.py",
+        "planfile/llm/*.py",
+        "planfile/dsl/*.py",
+        "planfile/extensions/*.py",
+        "planfile/delivery_plan*.py",
+        "planfile/delegation.py",
+        "planfile/execution.py",
+        "planfile/runner.py",
+        "planfile/builder.py",
+        "planfile/ci.py",
+        "planfile/testql_integration.py",
+        "planfile/todo_sync.py",
+        "planfile/autoupdate.py",
+        "planfile/release_availability.py",
+        "planfile/client.py",
+        "planfile/examples.py",
+        "planfile/executor_standalone.py"
+      ]
+    },
+    {
+      "id": "interfaces",
+      "layer": "interface",
+      "tier": "edge",
+      "stage": "sink",
+      "paths": [
+        "planfile/api/*.py",
+        "planfile/cli/*.py",
+        "planfile/cli/**/*.py",
+        "planfile/mcp/*.py",
+        "planfile/server_common.py",
+        "planfile/__main__.py",
+        "planfile/__init__.py"
+      ]
+    }
+  ]
+}

@@ -25,8 +25,7 @@
         "planfile/core/fastio.py",
         "planfile/core/jsonl_tail.py",
         "planfile/core/models.py",
-        "planfile/core/models/*.py",
-        "planfile/core/schema.py"
+        "planfile/core/models/*.py"
       ]
     },
     {
@@ -44,8 +43,7 @@
         "planfile/core/fastio.py",
         "planfile/core/jsonl_tail.py",
         "planfile/core/models.py",
-        "planfile/core/models/*.py",
-        "planfile/core/schema.py"
+        "planfile/core/models/*.py"
       ]
     },
     {

@@ -126,6 +126,22 @@ lexicographic key, so no later element can outrank an earlier one:
 The ordering is deterministic, propose-only and derived from the profile and the tree alone. It
 selects the next refactoring; it does not perform it.
 
+### 5.1 Cross-project URI process delegation (`DOCK-URI-001`)
+
+When a planned refactoring extracts a reusable procedure shared across multiple repositories or
+languages, projects SHOULD delegate execution to a `dockuri` URI process rather than duplicating
+helper scripts:
+
+- **Library call**: `uri('proc://<package>/<component>/<action>/v1', payload)` (or streaming
+  `uri_jsonl(...)`).
+- **CLI + JSONL stream**: `uri 'proc://<package>/<component>/<action>/v1' '{"key":"val"}'` or
+  piped JSONL lines on `stdin`.
+- **Lifecycle management**: generate, modify, or relocate URI processes via
+  `uri('proc://system/process/manage/v1', {'action': 'generate|modify|relocate', 'target_uri': ...})`.
+
+`streamline plan` attaches a deterministic `uriDelegation` descriptor (`targetUri`, `manageUri`,
+and polyglot `python` / `bash` invocation snippets) to each ranked refactoring item.
+
 ## 6. Conformance
 
 A conforming checker MUST:

@@ -509,6 +509,20 @@ def _check_streams(profile: dict[str, Any], by_id: dict[str, Any], comp_all: dic
 # --------------------------------------------------------------------------- planning
 
 
+def _uri_delegation(package: str, comp_id: str | None, module_path: str) -> dict[str, Any]:
+    """Build deterministic DOCK-URI-001 delegation metadata for a planned refactoring item."""
+    mod_slug = Path(module_path).stem.replace("_", "-") or "module"
+    scope = (comp_id or "core").replace("_", "-")
+    pkg = package.replace("_", "-")
+    target_uri = f"proc://{pkg}/{scope}/{mod_slug}/v1"
+    return {
+        "targetUri": target_uri,
+        "manageUri": "proc://system/process/manage/v1",
+        "python": f"from dockuri import uri\nresult = uri({target_uri!r}, {{'action': 'run'}})",
+        "cliJsonl": f"printf '%s\\n' '{{\"action\":\"run\"}}' | uri {target_uri!r}",
+    }
+
+
 def plan(profile: Any, root: Path, today: date | None = None) -> list[dict[str, Any]]:
     """Deterministic refactoring order for error findings.
 
@@ -525,10 +539,12 @@ def plan(profile: Any, root: Path, today: date | None = None) -> list[dict[str, 
     for f in findings:
         path = f.subject.split(" ")[0]
         comp = by_id.get(owner.get(path, ""))
+        comp_id = comp["id"] if comp else None
         rows.append({
             **f.as_dict(),
-            "component": comp["id"] if comp else None,
+            "component": comp_id,
             "key": [TIERS.index(comp["tier"]) if comp else len(TIERS), LAYERS.index(comp["layer"]) if comp else len(LAYERS), -f.overshoot],
+            "uriDelegation": _uri_delegation(profile["package"], comp_id, path),
         })
     rows.sort(key=lambda r: (r["key"], r["code"], r["subject"]))
     for rank, row in enumerate(rows, 1):

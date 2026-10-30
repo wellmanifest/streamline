@@ -308,5 +308,5 @@ def test_plan_reports_overshoot_as_data_not_parsed_text(tree):
 
 def test_checker_passes_its_own_profile():
     own = {"schema": sl.SCHEMA, "package": "src", "components": [
-        {"id": "checker", "paths": ["src/streamline.py"], "layer": "foundation", "tier": "floor"}]}
-    assert [f for f in sl.check(own, ROOT, TODAY) if f.code != "SL-BUDGET-LINES"] == []
+        {"id": "checker", "paths": ["src/*.py"], "layer": "foundation", "tier": "floor"}]}
+    assert sl.check(own, ROOT, TODAY) == []

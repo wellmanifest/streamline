@@ -67,6 +67,21 @@ included, `TYPE_CHECKING`-only imports excluded:
 
 The two rules are independent; satisfying one never waives the other.
 
+### 2.1.1 Literal dynamic imports
+
+The reference checker MUST include literal `importlib.import_module("package.module")`
+calls in dependency direction, fan-out and cycle analysis. It recognises `import importlib`
+and `from importlib import import_module`, including aliases, and resolves relative names
+when an explicit literal `package` is supplied. Function and lambda bodies remain deferred;
+function defaults and class bodies use the enclosing execution phase. Typing-only calls,
+postponed annotations and local variable annotations do not create runtime edges.
+
+Lexically shadowed or reassigned loader names MUST NOT be treated as importers. The checker
+MUST NOT execute scanned code or guess computed names, wildcard imports, indirect loader
+assignments or missing relative packages. This is bounded syntactic coverage, not proof of
+every runtime dependency: control-flow feasibility and runtime monkey-patching are not resolved.
+Loader calls affect dependency edges; `maxImports` continues to count import statements only.
+
 ### 2.2 Cycles
 
 - Import-time cycles between components are `SL-CYCLE`; between modules `SL-MODULE-CYCLE`.

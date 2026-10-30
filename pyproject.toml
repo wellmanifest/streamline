@@ -20,4 +20,4 @@ streamline = "streamline:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
-py-modules = ["streamline"]
+py-modules = ["streamline", "streamline_measure"]

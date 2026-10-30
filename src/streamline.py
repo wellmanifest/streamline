@@ -15,14 +15,15 @@ only reads files; it never edits a repository and grants no authority.
 from __future__ import annotations
 
 import argparse
-import ast
 import fnmatch
 import json
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
-from typing import Any, Iterable, Sequence
+from typing import Any, Sequence
+
+from streamline_measure import ModuleInfo, measure
 
 SCHEMA = "wellmanifest.streamline/profile/v1"
 # Layer vocabulary is owned by wellmanifest/modularity; tiers by wellmanifest/priority.
@@ -77,142 +78,6 @@ class Finding:
 
 
 # --------------------------------------------------------------------------- measurement
-
-
-@dataclass
-class ModuleInfo:
-    path: str
-    dotted: str
-    lines: int = 0
-    import_statements: int = 0
-    public_symbols: int = 0
-    max_methods: int = 0
-    max_function_lines: int = 0
-    longest_function: str = ""
-    import_time: set[str] = field(default_factory=set)
-    deferred: set[str] = field(default_factory=set)
-
-    @property
-    def fan_out(self) -> int:
-        return len(self.import_time | self.deferred)
-
-
-def _dotted(rel: Path) -> str:
-    parts = list(rel.with_suffix("").parts)
-    if parts and parts[-1] == "__init__":
-        parts.pop()
-    return ".".join(parts)
-
-
-def _collect_files(root: Path, package: str) -> list[Path]:
-    base = root / package
-    if base.is_file():
-        return [base]
-    return sorted(p for p in base.rglob("*.py") if "__pycache__" not in p.parts)
-
-
-def _resolve(name: str, known: dict[str, str]) -> str | None:
-    """Longest dotted prefix of ``name`` that is a known module."""
-    parts = name.split(".")
-    while parts:
-        candidate = ".".join(parts)
-        if candidate in known:
-            return known[candidate]
-        parts.pop()
-    return None
-
-
-class _ImportVisitor(ast.NodeVisitor):
-    def __init__(self, module: ModuleInfo, known: dict[str, str]) -> None:
-        self.module = module
-        self.known = known
-        self.depth = 0
-        self.typing_only = 0
-        self.is_package = module.path.endswith("__init__.py")
-
-    def _targets(self, node: ast.AST) -> Iterable[str]:
-        if isinstance(node, ast.Import):
-            for alias in node.names:
-                yield alias.name
-        elif isinstance(node, ast.ImportFrom):
-            base = node.module or ""
-            if node.level:
-                parts = self.module.dotted.split(".") if self.module.dotted else []
-                keep = len(parts) - node.level + (1 if self.is_package else 0)
-                prefix = ".".join(parts[: max(keep, 0)])
-                base = ".".join(x for x in (prefix, base) if x)
-            # `from pkg import name` depends on submodule pkg.name when it exists, otherwise on
-            # pkg itself (the name is re-exported by pkg/__init__.py).
-            plain_names = False
-            for alias in node.names:
-                sub = f"{base}.{alias.name}" if base else alias.name
-                if sub in self.known:
-                    yield sub
-                else:
-                    plain_names = True
-            if plain_names:
-                yield base
-
-    def _record(self, node: ast.AST) -> None:
-        self.module.import_statements += 1
-        if self.typing_only:
-            return
-        bucket = self.module.deferred if self.depth else self.module.import_time
-        for name in self._targets(node):
-            target = _resolve(name, self.known)
-            if target and target != self.module.path:
-                bucket.add(target)
-
-    visit_Import = visit_ImportFrom = _record  # type: ignore[assignment]
-
-    def _scoped(self, node: ast.AST) -> None:
-        self.depth += 1
-        self.generic_visit(node)
-        self.depth -= 1
-
-    visit_FunctionDef = visit_AsyncFunctionDef = _scoped  # type: ignore[assignment]
-
-    def visit_If(self, node: ast.If) -> None:
-        test = ast.unparse(node.test)
-        if test in {"TYPE_CHECKING", "typing.TYPE_CHECKING"}:
-            self.typing_only += 1
-            for child in node.body:
-                self.visit(child)
-            self.typing_only -= 1
-            for child in node.orelse:
-                self.visit(child)
-        else:
-            self.generic_visit(node)
-
-
-def measure(root: Path, package: str) -> dict[str, ModuleInfo]:
-    files = _collect_files(root, package)
-    rels = {f: f.relative_to(root) for f in files}
-    known = {_dotted(rel): rel.as_posix() for rel in rels.values()}
-    modules: dict[str, ModuleInfo] = {}
-    for file, rel in rels.items():
-        text = file.read_text(encoding="utf-8", errors="replace")
-        info = ModuleInfo(path=rel.as_posix(), dotted=_dotted(rel), lines=len(text.splitlines()))
-        try:
-            tree = ast.parse(text)
-        except SyntaxError:
-            modules[info.path] = info
-            continue
-        _ImportVisitor(info, known).visit(tree)
-        for node in tree.body:
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and not node.name.startswith("_"):
-                info.public_symbols += 1
-            if isinstance(node, ast.ClassDef):
-                methods = sum(isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) for n in node.body)
-                info.max_methods = max(info.max_methods, methods)
-        for node in ast.walk(tree):
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                length = (node.end_lineno or node.lineno) - node.lineno + 1
-                if length > info.max_function_lines:
-                    info.max_function_lines, info.longest_function = length, node.name
-        info.deferred -= info.import_time
-        modules[info.path] = info
-    return modules
 
 
 def _sccs(graph: dict[str, set[str]]) -> list[list[str]]:
